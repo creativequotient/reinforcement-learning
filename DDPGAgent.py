@@ -15,6 +15,8 @@ class DDPGAgent(object):
                  min_replay_size=1024,
                  replay_buffer_size=250000,
                  tau=0.001,
+                 input_dims=[8],
+                 n_actions=2,
                  **kwargs):
 
         # Device
@@ -22,14 +24,14 @@ class DDPGAgent(object):
 
         # Neural networks
         # Policy Network
-        self.pi = Actor(2).to(self.device)
-        self.target_pi = Actor(2).to(self.device)
-        self.pi_optimizer = torch.optim.Adam(self.pi.parameters(), lr=pi_lr)
+        self.pi = Actor(alpha=pi_lr, input_dims=input_dims, n_actions=n_actions).to(self.device)
+        self.target_pi = Actor(alpha=pi_lr, input_dims=input_dims, n_actions=n_actions).to(self.device)
+        self.pi_optimizer = self.pi.optimizer
 
         # Evaluation Network
-        self.q = Critic(2).to(self.device)
-        self.target_q = Critic(2).to(self.device)
-        self.q_optimizer = torch.optim.Adam(self.q.parameters(), lr=q_lr)
+        self.q = Critic(beta=q_lr, input_dims=input_dims, n_actions=n_actions).to(self.device)
+        self.target_q = Critic(beta=q_lr,input_dims=input_dims, n_actions=n_actions).to(self.device)
+        self.q_optimizer = self.q.optimizer
 
         # Sync weights
         self.sync_weights()
@@ -42,6 +44,7 @@ class DDPGAgent(object):
         self.tau = tau
         self.gamma = gamma
         self.batch_size = batch_size
+        self.n_actions = n_actions
 
     def action(self, observation):
         obs = torch.from_numpy(observation).type(torch.float).to(self.device)
@@ -54,7 +57,7 @@ class DDPGAgent(object):
         return self.target_pi(obs)[0]
 
     def random_action(self):
-        return torch.FloatTensor(2).uniform_(-1,1).to(self.device)
+        return torch.FloatTensor(self.n_actions).uniform_(-1,1).to(self.device)
 
     def train(self):
         # Loss statistics
@@ -67,7 +70,7 @@ class DDPGAgent(object):
         obs = torch.tensor(obs, dtype=torch.float, device=self.device)
         actions = torch.tensor(actions, dtype=torch.float, device=self.device)
         rewards = torch.tensor(rewards, dtype=torch.float, device=self.device).view((-1,1))
-        new_obs = torch.from_numpy(np.stack(new_obs)).to(self.device)
+        new_obs = torch.from_numpy(np.stack(new_obs)).to(dtype=torch.float, device=self.device)
         done = torch.tensor(done, dtype=torch.float, device=self.device).view((-1,1))
 
         self.target_pi.eval()
@@ -166,3 +169,6 @@ class DDPGAgent(object):
         self.target_q.eval()
 
         self.sync_weights()
+
+    def __str__(self):
+        return str(self.pi) + str(self.q)

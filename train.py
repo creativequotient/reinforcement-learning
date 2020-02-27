@@ -1,17 +1,20 @@
 import numpy as np
-import torch
+import torch as T
 from DDPGAgent import DDPGAgent
 from Noise import OrnsteinUhlenbeckActionNoise, NormalActionNoise
 import os
 import argparse
 import json
 import gym
+import random
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = T.device('cuda' if T.cuda.is_available() else 'cpu')
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--env', type=str)
     parser.add_argument('--experiment_name', default="ddpg", type=str)
     parser.add_argument('--episodes', default=10000, type=int)
     parser.add_argument('--episode_length', default=1000, type=int)
@@ -28,7 +31,7 @@ def parse_args():
     parser.add_argument('--tau', default=0.005, type=float)
     parser.add_argument('--render', dest='render', action='store_true')
     parser.add_argument('--gaussian_noise', dest='gaussian_noise', action='store_true')
-    parser.add_argument('--resume', default="", type=str)
+    parser.add_argument('--seed', default=0, type=int)
     parser.set_defaults(render=False)
     parser.set_defaults(gaussian_noise=False)
     return parser.parse_args()
@@ -39,8 +42,15 @@ if __name__ == "__main__":
 
     experiment_name = args.experiment_name
 
-    env = gym.make("LunarLanderContinuous-v2")
+    env = gym.make(args.env)
 
+    T.manual_seed(args.seed)
+    T.backends.cudnn.deterministic = True
+    T.backends.cudnn.benchmark = False
+    np.random.seed(args.seed)
+    env.seed(args.seed)
+
+    print(f"================= {'Environment Information'.center(30)} =================")
     print(f"Action space shape: {env.env.action_space.shape}")
     print(f"Action space upper bound: {env.env.action_space.high}")
     print(f"Action space lower bound: {env.env.action_space.low}")
@@ -49,34 +59,33 @@ if __name__ == "__main__":
     print(f"Observation space upper bound: {np.max(env.env.observation_space.high)}")
     print(f"Observation space lower bound: {np.min(env.env.observation_space.low)}")
 
-    if args.resume != "":
-        print(f"Resuming training from {args.resume}!!")
-        # Load json parameters
-        with open(f"experiments/{args.resume}/parameters.json", "r") as f:
-            parameters = json.load(f)
+    print(f"================= {'Parameters'.center(30)} =================")
+    for k, v in args.__dict__.items():
+        print(f"{k:<20}: {v}")
 
-        agent = DDPGAgent(**parameters)
-        agent.load_agent(f"experiments/{args.resume}/saves")
+    # Experiment directory storage
+    counter = 1
+    env_path = os.path.join("experiments", args.env)
+    if not os.path.exists(env_path):
+        os.mkdir(env_path)
 
-        experiment_path = os.path.join("experiments", f"{args.resume}")
+    while True:
+        try:
+            experiment_path = os.path.join(env_path, f"{experiment_name}_{counter}")
+            os.mkdir(experiment_path)
+            os.mkdir(os.path.join(experiment_path, "saves"))
+            break
+        except FileExistsError as e:
+            counter += 1
 
-    else:
-        # Experiment directory storage
-        counter = 1
-        while True:
-            try:
-                os.mkdir(os.path.join("experiments", f"{experiment_name}_{counter}"))
-                os.mkdir(os.path.join("experiments", f"{experiment_name}_{counter}", "saves"))
-                experiment_path = os.path.join("experiments", f"{experiment_name}_{counter}")
-                break
-            except FileExistsError as e:
-                counter += 1
+    with open(os.path.join(experiment_path, 'parameters.json'), 'w') as f:
+        json.dump(args.__dict__, f, indent=2)
 
-        with open(os.path.join(experiment_path, 'parameters.json'), 'w') as f:
-            json.dump(args.__dict__, f, indent=2)
+    agent = DDPGAgent(**args.__dict__,
+                      input_dims=env.observation_space.shape,
+                      n_actions=env.action_space.shape[0] if type(env.action_space) == gym.spaces.box.Box else env.action_space.n)
 
-        agent = DDPGAgent(**args.__dict__)
-
+    print(f"================= {'Noise Information'.center(30)} =================")
     if args.gaussian_noise:
         noise = NormalActionNoise(mean=0, sigma=0.2, size=2)
         print(noise)
@@ -84,9 +93,10 @@ if __name__ == "__main__":
         noise = OrnsteinUhlenbeckActionNoise(np.zeros(2))
         print(noise)
 
-    print(agent.pi)
-    print(agent.q)
+    print(f"================= {'Agent Information'.center(30)} =================")
+    print(agent)
 
+    print(f"================= {'Begin Training'.center(30)} =================")
     counter = 0
 
     for episode in range(args.episodes):
@@ -103,10 +113,10 @@ if __name__ == "__main__":
                 env.render()
 
             # Get actions
-            with torch.no_grad():
+            with T.no_grad():
                 if episode >= args.exploration:
-                    action = agent.action(obs) + torch.tensor(noise(), dtype=torch.float, device=device)
-                    action = torch.clamp(action, -1.0, 1.0)
+                    action = agent.action(obs) + T.tensor(noise(), dtype=T.float, device=device)
+                    action = T.clamp(action, -1.0, 1.0)
                 else:
                     action = agent.random_action()
 
@@ -122,23 +132,24 @@ if __name__ == "__main__":
                 if agent.replay_buffer.size() > agent.min_replay_size:
                     counter = 0
                     loss = agent.train()
+
+                    # Loss information kept for monitoring purposes during training
                     actor_loss += loss['actor_loss']
                     critic_loss += loss['critic_loss']
+
                     agent.update()
 
             # Update obs
             obs = new_obs
 
+            # Update counter
+            counter += 1
+
             # End episode if done
             if done:
                 break
 
-            # Update counter
-            counter += 1
-
-        print(f"Episode: {episode} Episode reward: {episode_reward} ",
-              f"Mean actor loss: {actor_loss / (step / args.train_interval)}",
-              f" Mean critic loss: {critic_loss / (step / args.train_interval)}")
+        print(f"Episode: {episode} Episode reward: {episode_reward}")
 
         # Evaluate
         if episode % args.eval_interval == 0:
@@ -152,7 +163,7 @@ if __name__ == "__main__":
                         env.render()
 
                     # Get actions
-                    with torch.no_grad():
+                    with T.no_grad():
                         action = agent.action(obs)
 
                     # Take step in environment
@@ -176,6 +187,6 @@ if __name__ == "__main__":
             print(f"Episode: {episode} Average evaluation reward: {evaluation_rewards} Agent saved at {save_path}")
             with open(f"{experiment_path}/evaluation_rewards.csv", "a") as f:
                 f.write(f"{episode}, {evaluation_rewards}\n")
-            if evaluation_rewards > 200:
-                print("SOLVED!!")
+            if evaluation_rewards > env.spec.reward_threshold:
+                print(f"Environment solved after {episode} episodes")
                 break

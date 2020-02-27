@@ -37,6 +37,8 @@ class Actor(nn.Module):
 
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
 
+        self.optimizer = optim.Adam(self.parameters(), lr=self.alpha)
+
         self.to(self.device)
 
     def forward(self, state):
@@ -78,6 +80,8 @@ class Critic(nn.Module):
         T.nn.init.uniform_(self.q.bias.data, -f3, f3)
 
         self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
+
+        self.optimizer = optim.Adam(self.parameters(), lr=self.beta)
 
         self.to(self.device)
 
