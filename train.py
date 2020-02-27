@@ -7,6 +7,7 @@ import argparse
 import json
 import gym
 import random
+from collections import deque
 
 
 device = T.device('cuda' if T.cuda.is_available() else 'cpu')
@@ -24,7 +25,7 @@ def parse_args():
     parser.add_argument('--eval_interval', default=10, type=int)
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--min_replay_size', default=1000, type=int)
-    parser.add_argument('--replay_buffer_size', default=100000, type=int)
+    parser.add_argument('--replay_buffer_size', default=1000000, type=int)
     parser.add_argument('--pi_lr', default=0.0001, type=float)
     parser.add_argument('--q_lr', default=0.001, type=float)
     parser.add_argument('--gamma', default=0.99, type=float)
@@ -48,6 +49,7 @@ if __name__ == "__main__":
     T.backends.cudnn.deterministic = True
     T.backends.cudnn.benchmark = False
     np.random.seed(args.seed)
+    random.seed(args.seed)
     env.seed(args.seed)
 
     print(f"================= {'Environment Information'.center(30)} =================")
@@ -82,7 +84,11 @@ if __name__ == "__main__":
         json.dump(args.__dict__, f, indent=2)
 
     n_actions = env.action_space.shape[0] if type(env.action_space) == gym.spaces.box.Box else env.action_space.n
-    agent = DDPGAgent(**args.__dict__,
+
+    # TODO: Modify this to call any other algorithm
+    algorithm = DDPGAgent
+
+    agent = algorithm(**args.__dict__,
                       input_dims=env.observation_space.shape,
                       n_actions=n_actions)
 
@@ -98,7 +104,10 @@ if __name__ == "__main__":
     print(agent)
 
     print(f"================= {'Begin Training'.center(30)} =================")
+
     counter = 0
+    reward_history = deque(maxlen=100)
+
 
     for episode in range(args.episodes):
         obs = env.reset()
@@ -150,7 +159,9 @@ if __name__ == "__main__":
             if done:
                 break
 
-        print(f"Episode: {episode} Episode reward: {episode_reward}")
+        reward_history.append(episode_reward)
+        print(f"Episode: {episode} Episode reward: {episode_reward} Average reward: {np.mean(reward_history)}")
+        # print(f"Actor loss: {actor_loss/(step/args.train_interval)} Critic loss: {critic_loss/(step/args.train_interval)}")
 
         # Evaluate
         if episode % args.eval_interval == 0:

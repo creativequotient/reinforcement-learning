@@ -23,8 +23,13 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    env = gym.make("LunarLanderContinuous-v2")
+    # Load json parameters
+    with open(f"{args.resume}/parameters.json", "r") as f:
+        parameters = json.load(f)
 
+    env = gym.make(parameters['env'])
+
+    print(f"================= {'Environment Information'.center(30)} =================")
     print(f"Action space shape: {env.env.action_space.shape}")
     print(f"Action space upper bound: {env.env.action_space.high}")
     print(f"Action space lower bound: {env.env.action_space.low}")
@@ -33,17 +38,19 @@ if __name__ == "__main__":
     print(f"Observation space upper bound: {np.max(env.env.observation_space.high)}")
     print(f"Observation space lower bound: {np.min(env.env.observation_space.low)}")
 
-    # Load json parameters
-    with open(f"experiments/{args.resume}/parameters.json", "r") as f:
-        parameters = json.load(f)
+    n_actions = env.action_space.shape[0] if type(env.action_space) == gym.spaces.box.Box else env.action_space.n
 
-    agent = DDPGAgent(**parameters)
-    agent.load_agent(f"experiments/{args.resume}/saves")
+    agent = DDPGAgent(**args.__dict__,
+                      input_dims=env.observation_space.shape,
+                      n_actions=n_actions)
 
-    experiment_path = os.path.join("experiments", f"{args.resume}")
+    agent.load_agent(f"{args.resume}/saves")
 
-    print(agent.pi)
-    print(agent.q)
+    print(f"================= {'Agent Information'.center(30)} =================")
+    print(agent)
+
+    print(f"================= {'Begin Evaluation'.center(30)} =================")
+
     total_rewards = 0.0
 
     for episode in range(args.episodes):
@@ -68,8 +75,6 @@ if __name__ == "__main__":
             # End episode if done
             if done:
                 break
-
-
 
         total_rewards += episode_reward
         episode_reward = round(episode_reward, 3)
