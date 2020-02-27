@@ -81,16 +81,17 @@ if __name__ == "__main__":
     with open(os.path.join(experiment_path, 'parameters.json'), 'w') as f:
         json.dump(args.__dict__, f, indent=2)
 
+    n_actions = env.action_space.shape[0] if type(env.action_space) == gym.spaces.box.Box else env.action_space.n
     agent = DDPGAgent(**args.__dict__,
                       input_dims=env.observation_space.shape,
-                      n_actions=env.action_space.shape[0] if type(env.action_space) == gym.spaces.box.Box else env.action_space.n)
+                      n_actions=n_actions)
 
     print(f"================= {'Noise Information'.center(30)} =================")
     if args.gaussian_noise:
-        noise = NormalActionNoise(mean=0, sigma=0.2, size=2)
+        noise = NormalActionNoise(mean=0, sigma=0.2, size=n_actions)
         print(noise)
     else:
-        noise = OrnsteinUhlenbeckActionNoise(np.zeros(2))
+        noise = OrnsteinUhlenbeckActionNoise(np.zeros(n_actions))
         print(noise)
 
     print(f"================= {'Agent Information'.center(30)} =================")
@@ -187,6 +188,6 @@ if __name__ == "__main__":
             print(f"Episode: {episode} Average evaluation reward: {evaluation_rewards} Agent saved at {save_path}")
             with open(f"{experiment_path}/evaluation_rewards.csv", "a") as f:
                 f.write(f"{episode}, {evaluation_rewards}\n")
-            if evaluation_rewards > env.spec.reward_threshold:
+            if evaluation_rewards > env.spec.reward_threshold * 1.1: # x 1.1 because of small eval_episodes
                 print(f"Environment solved after {episode} episodes")
                 break
