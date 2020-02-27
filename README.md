@@ -23,3 +23,13 @@ CUDA Specific dependencies:
 
 `cudnn 7.6.5`\
 `cudatoolkit 10.1.243`
+
+# TODO
+## High priority
+- [ ] Implement PPO and TRPO policies
+- [ ] Change `ReplayBuffer` to create `replay_buffer_size` length of zero arrays as a placeholder so as to avoid out of memory errors as the `ReplayBuffer` fills up
+
+## Medium priority
+- [ ] Add ability to resume training from pre-trained models
+
+## Low priority
