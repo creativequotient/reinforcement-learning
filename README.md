@@ -15,7 +15,7 @@ To view pre-trained agents, execute `python test.py experiments/LunarLanderConti
 Pendulum-v2 has no `solved` threshold, however, it clearly achieves its goal of keeping the pendulum upright when reviewed visually. To reproduce, execute
 `python train.py --env Pendulum-v0`.
 
-To view pre-trained agents, execute `python test.py experiments/Pendulum-v0/DDPG_1`.
+To view pre-trained agents, execute `python test.py experiments/Pendulum-v0/DDPG_1` or `DDPG_2`. Both solve the environment, though `DDPG_1` was trained 'incorrectly' due to unscaled actions (ie action range was [-1,1] instead of [-2,2]).
 
 ## BipedalWalker-v3
 Currently a work in progress
