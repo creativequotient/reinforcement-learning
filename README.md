@@ -8,14 +8,20 @@ This library will be implemented using **pytorch**.
 LunarLanderContinuous-v2 solved was solved in ~260 episodes using DDPG, to reproduce, execute the following 
 `python train.py --env LunarLanderContinuous-v2 --tau 0.001`.
 
-To view pre-trained agents, execute `python test.py experiments/LunarLanderContinuous-v2/luna_v2` or `luna_v1`.
+To view pre-trained agents, execute `python test.py experiments/LunarLanderContinuous-v2/luna_v2 --render` or `luna_v1`.
 `luna_v2` was trained in 270 episodes and has a 100-episode average of 250 whereas `luna_v1` has a 100-episode average of only 220.
 
 ## Pendulum-v0
 Pendulum-v2 has no `solved` threshold, however, it clearly achieves its goal of keeping the pendulum upright when reviewed visually. To reproduce, execute
 `python train.py --env Pendulum-v0`.
 
-To view pre-trained agents, execute `python test.py experiments/Pendulum-v0/DDPG_1` or `DDPG_2`. Both solve the environment, though `DDPG_1` was trained 'incorrectly' due to unscaled actions (ie action range was [-1,1] instead of [-2,2]).
+To view pre-trained agents, execute `python test.py experiments/Pendulum-v0/DDPG_1 --render` or `DDPG_2`. Both solve the environment, though `DDPG_1` was trained 'incorrectly' due to unscaled actions (ie action range was [-1,1] instead of [-2,2]).
+
+## MountainCarContinuous-v0
+MountainCarContinuous-v0 solved at ~1000 episodes, possibly sooner depending on seed due to need for "successful" exploration of the left slope. 
+To reproduce, execute `python train.py --env MountainCarContinuous-v0`.
+
+To view pre-trained agents, execute `python test.py experiments/MountainCarContinuous-v0/DDPG_1 --render`.
 
 ## BipedalWalker-v3
 Currently a work in progress

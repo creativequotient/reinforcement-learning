@@ -40,9 +40,9 @@ if __name__ == "__main__":
 
     n_actions = env.action_space.shape[0] if type(env.action_space) == gym.spaces.box.Box else env.action_space.n
 
-    agent = DDPGAgent(**args.__dict__,
-                      input_dims=env.observation_space.shape,
-                      n_actions=n_actions)
+    agent = DDPGAgent(input_dims=env.observation_space.shape,
+                      n_actions=n_actions,
+                      **parameters)
 
     agent.load_agent(f"{args.resume}/saves")
 

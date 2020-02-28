@@ -8,15 +8,15 @@ import random
 
 class DDPGAgent(object):
     def __init__(self,
-                 pi_lr=0.0001,
-                 q_lr=0.001,
-                 gamma=0.99,
-                 batch_size=16,
-                 min_replay_size=1024,
-                 replay_buffer_size=250000,
-                 tau=0.001,
-                 input_dims=[8],
-                 n_actions=2,
+                 pi_lr,
+                 q_lr,
+                 gamma,
+                 batch_size,
+                 min_replay_size,
+                 replay_buffer_size,
+                 tau,
+                 input_dims,
+                 n_actions,
                  **kwargs):
 
         # Device
