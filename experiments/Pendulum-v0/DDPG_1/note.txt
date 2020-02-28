@@ -1,0 +1,1 @@
+this agent was trained WITHOUT correctly scaled inputs, ie the range of actions was [-1,1] instead of [-2,2]

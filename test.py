@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 action = agent.action(obs)
 
             # Take step in environment
-            new_obs, reward, done, _ = env.step(action.detach().cpu().numpy())
+            new_obs, reward, done, _ = env.step(action.detach().cpu().numpy()  * env.action_space.high)
 
             # Update obs
             obs = new_obs

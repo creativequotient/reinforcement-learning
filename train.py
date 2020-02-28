@@ -108,7 +108,6 @@ if __name__ == "__main__":
     counter = 0
     reward_history = deque(maxlen=100)
 
-
     for episode in range(args.episodes):
         obs = env.reset()
         noise.reset()
@@ -131,7 +130,7 @@ if __name__ == "__main__":
                     action = agent.random_action()
 
             # Take step in environment
-            new_obs, reward, done, _ = env.step(action.detach().cpu().numpy())
+            new_obs, reward, done, _ = env.step(action.detach().cpu().numpy() * env.action_space.high)
             episode_reward += reward
 
             # Store experience
@@ -179,7 +178,7 @@ if __name__ == "__main__":
                         action = agent.action(obs)
 
                     # Take step in environment
-                    new_obs, reward, done, _ = env.step(action.detach().cpu().numpy())
+                    new_obs, reward, done, _ = env.step(action.detach().cpu().numpy()  * env.action_space.high)
 
                     # Update obs
                     obs = new_obs
@@ -199,6 +198,11 @@ if __name__ == "__main__":
             print(f"Episode: {episode} Average evaluation reward: {evaluation_rewards} Agent saved at {save_path}")
             with open(f"{experiment_path}/evaluation_rewards.csv", "a") as f:
                 f.write(f"{episode}, {evaluation_rewards}\n")
-            if evaluation_rewards > env.spec.reward_threshold * 1.1: # x 1.1 because of small eval_episodes
-                print(f"Environment solved after {episode} episodes")
-                break
+            try:
+                if evaluation_rewards > env.spec.reward_threshold * 1.1: # x 1.1 because of small eval_episodes
+                    print(f"Environment solved after {episode} episodes")
+                    break
+            except Exception as e:
+                if evaluation_rewards > -120:  # x 1.1 because of small eval_episodes
+                    print(f"Environment solved after {episode} episodes")
+                    break

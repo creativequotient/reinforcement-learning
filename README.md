@@ -6,10 +6,17 @@ This library will be implemented using **pytorch**.
 # Solved environments
 ## LunarLanderContinuous-v2
 LunarLanderContinuous-v2 solved was solved in ~260 episodes using DDPG, to reproduce, execute the following 
-`python train.py --env LunarLanderContinuous-v2 --tau 0.001`
+`python train.py --env LunarLanderContinuous-v2 --tau 0.001`.
 
 To view pre-trained agents, execute `python test.py experiments/LunarLanderContinuous-v2/luna_v2` or `luna_v1`.
 `luna_v2` was trained in 270 episodes and has a 100-episode average of 250 whereas `luna_v1` has a 100-episode average of only 220.
+
+## Pendulum-v0
+Pendulum-v2 has no `solved` threshold, however, it clearly achieves its goal of keeping the pendulum upright when reviewed visually. To reproduce, execute
+`python train.py --env Pendulum-v0`.
+
+To view pre-trained agents, execute `python test.py experiments/Pendulum-v0/DDPG_1`.
+
 ## BipedalWalker-v3
 Currently a work in progress
 
