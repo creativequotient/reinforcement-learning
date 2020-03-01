@@ -16,5 +16,6 @@
   "tau": 0.001,
   "render": false,
   "gaussian_noise": false,
+  "noise_param": 0.2,
   "seed": 0
 }

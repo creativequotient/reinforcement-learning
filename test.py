@@ -6,6 +6,8 @@ import os
 import argparse
 import json
 import gym
+import random
+import torch as T
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -17,6 +19,7 @@ def parse_args():
     parser.add_argument('-el', '--episode_length', default=1000, type=int)
     parser.add_argument('--render', dest='render', action='store_true')
     parser.set_defaults(render=False)
+    parser.add_argument('--seed', default=0, type=int)
     return parser.parse_args()
 
 
@@ -28,6 +31,13 @@ if __name__ == "__main__":
         parameters = json.load(f)
 
     env = gym.make(parameters['env'])
+
+    T.manual_seed(args.seed)
+    T.backends.cudnn.deterministic = True
+    T.backends.cudnn.benchmark = False
+    np.random.seed(args.seed)
+    random.seed(args.seed)
+    env.seed(args.seed)
 
     print(f"================= {'Environment Information'.center(30)} =================")
     print(f"Action space shape: {env.env.action_space.shape}")

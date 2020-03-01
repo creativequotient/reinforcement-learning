@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument('--tau', default=0.005, type=float)
     parser.add_argument('--render', dest='render', action='store_true')
     parser.add_argument('--gaussian_noise', dest='gaussian_noise', action='store_true')
+    parser.add_argument('--noise_param', default=0.2, type=float)
     parser.add_argument('--seed', default=0, type=int)
     parser.set_defaults(render=False)
     parser.set_defaults(gaussian_noise=False)
@@ -94,10 +95,10 @@ if __name__ == "__main__":
 
     print(f"================= {'Noise Information'.center(30)} =================")
     if args.gaussian_noise:
-        noise = NormalActionNoise(mean=0, sigma=0.2, size=n_actions)
+        noise = NormalActionNoise(mean=0, sigma=args.noise_param, size=n_actions)
         print(noise)
     else:
-        noise = OrnsteinUhlenbeckActionNoise(np.zeros(n_actions))
+        noise = OrnsteinUhlenbeckActionNoise(np.zeros(n_actions), sigma=args.noise_param)
         print(noise)
 
     print(f"================= {'Agent Information'.center(30)} =================")

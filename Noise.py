@@ -44,7 +44,7 @@ class OrnsteinUhlenbeckActionNoise(ActionNoise):
     :param initial_noise: ([float]) the initial value for the noise output, (if None: 0)
     """
 
-    def __init__(self, mean, sigma=0.3, theta=.15, dt=1e-2, initial_noise=None):
+    def __init__(self, mean, sigma=0.2, theta=.15, dt=1e-2, initial_noise=None):
         self._theta = theta
         self._mu = mean
         self._sigma = sigma
