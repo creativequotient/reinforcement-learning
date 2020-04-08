@@ -37,6 +37,20 @@ To reproduce, execute `python train.py --env BipedalWalker-v3 --q_lr 0.002`.
 
 To view pre-trained agent, execute `python test.py -r experiments/BipedalWalker-v3/DDPG_1 --render`.
 
+## HalfCheetah-v2
+Solved after 1500 episodes with a > 4800 average over 100 episodes.
+
+To reproduce, execute `python train.py --env HalfCheetah-v2`.
+
+To view pre-trained again, execute `python test.py -r experiments/HalfCheetah-v2/ddpg_1 --render`.
+
+## Ant-v2
+Partial solve with > 4500 average over 100 episodess (solved is > 6000 average over 100 episodes).
+
+To reproduce, execute `python train.py --env Ant-v2`.
+
+To view pre-trained again, execute `python test.py -r experiments/Ant-v2/ddpg_1 --render`.
+
 # Dependencies
 `python 3.6.10`\
 `gym 0.16.0`\

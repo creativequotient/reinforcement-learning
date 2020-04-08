@@ -1,8 +1,6 @@
 import numpy as np
 import torch
 from DDPGAgent import DDPGAgent
-from Noise import OrnsteinUhlenbeckActionNoise, NormalActionNoise
-import os
 import argparse
 import json
 import gym
@@ -76,7 +74,7 @@ if __name__ == "__main__":
                 action = agent.action(obs)
 
             # Take step in environment
-            new_obs, reward, done, _ = env.step(action.detach().cpu().numpy()  * env.action_space.high)
+            new_obs, reward, done, _ = env.step(action.detach().cpu().numpy() * env.action_space.high)
 
             # Update obs
             obs = new_obs
@@ -88,6 +86,6 @@ if __name__ == "__main__":
 
         total_rewards += episode_reward
         episode_reward = round(episode_reward, 3)
-        print(f"Episode: {episode} Average evaluation reward: {episode_reward}")
+        print(f"Episode: {episode} Evaluation reward: {episode_reward}")
 
     print(f"{args.episodes} episode average: {round(total_rewards / args.episodes, 3)}")

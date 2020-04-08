@@ -204,6 +204,6 @@ if __name__ == "__main__":
                     print(f"Environment solved after {episode} episodes")
                     break
             except Exception as e:
-                if evaluation_rewards > -120:  # x 1.1 because of small eval_episodes
+                if evaluation_rewards > -120:
                     print(f"Environment solved after {episode} episodes")
                     break
